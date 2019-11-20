@@ -54,6 +54,17 @@ func Dial(addr string) (net.Conn, error) {
     return net.Dial(proto, addr)
 }
 
+func Corkscrew(proxy, addr string) (net.Conn, error) {
+    conn, err := Dial(proxy)
+    if err != nil {
+	return nil, err
+    }
+    conn.Write([]byte("CONNECT " + addr + " HTTP/1.1\r\n\r\n"))
+    buf := make([]byte, 256)
+    conn.Read(buf) // discard HTTP/1.1 200 Established
+    return conn, nil
+}
+
 func (s *Server)Run() {
     for {
 	conn, _ := s.listener.Accept()
