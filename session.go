@@ -54,14 +54,27 @@ func Dial(addr string) (net.Conn, error) {
     return net.Dial(proto, addr)
 }
 
+func HttpConnect(conn net.Conn, addr string) error {
+    var err error
+    _, err = conn.Write([]byte("CONNECT " + addr + " HTTP/1.1\r\n\r\n"))
+    if err != nil {
+	return err
+    }
+    buf := make([]byte, 256)
+    _, err = conn.Read(buf) // discard HTTP/1.1 200 Established
+    return err
+}
+
 func Corkscrew(proxy, addr string) (net.Conn, error) {
     conn, err := Dial(proxy)
     if err != nil {
 	return nil, err
     }
-    conn.Write([]byte("CONNECT " + addr + " HTTP/1.1\r\n\r\n"))
-    buf := make([]byte, 256)
-    conn.Read(buf) // discard HTTP/1.1 200 Established
+    err = HttpConnect(conn, addr)
+    if err != nil {
+	conn.Close()
+	return nil, err
+    }
     return conn, nil
 }
 
