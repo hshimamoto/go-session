@@ -43,7 +43,9 @@ func Listen(addr string) (net.Listener, error) {
     proto, addr := GetProtoAddr(addr)
     if proto == "unix" {
 	if err := os.Remove(addr); err != nil {
-	    return nil, err
+	    if os.IsNotExist(err) == false {
+		return nil, err
+	    }
 	}
     }
     return net.Listen(proto, addr)
