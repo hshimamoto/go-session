@@ -5,6 +5,8 @@
 package session
 
 import (
+	"bytes"
+	"fmt"
 	"net"
 	"os"
 	"strings"
@@ -63,7 +65,39 @@ func HttpConnect(conn net.Conn, addr string) error {
 	return err
     }
     buf := make([]byte, 256)
-    _, err = conn.Read(buf) // discard HTTP/1.1 200 Established
+    n, err := conn.Read(buf) // discard HTTP/1.1 200 Established
+    if err != nil {
+	return err
+    }
+    headercheck := true
+    for {
+	if headercheck {
+	    // 012345678901234
+	    // HTTP/1.1 200 OK
+	    if n > 12 {
+		if buf[8] == ' ' && buf[9] == '2' && buf[12] == ' ' {
+		    // header is okay
+		    headercheck = false
+		} else {
+		    return fmt.Errorf("bad response: %s", string(buf[:12]))
+		}
+	    }
+	}
+	if bytes.Index(buf, []byte{13, 10, 13, 10}) > 0 {
+	    break
+	}
+	r, err := conn.Read(buf[n:n+1])
+	if err != nil {
+	    return err
+	}
+	if r == 0 {
+	    return fmt.Errorf("connection closed")
+	}
+	n += r
+	if n >= 256 {
+	    return fmt.Errorf("header too long")
+	}
+    }
     return err
 }
 
