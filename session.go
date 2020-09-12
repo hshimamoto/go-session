@@ -1,5 +1,5 @@
 // go-session
-// MIT License Copyright(c) 2019 Hiroshi Shimamoto
+// MIT License Copyright(c) 2019, 2020 Hiroshi Shimamoto
 // vim:set sw=4 sts=4:
 
 package session
