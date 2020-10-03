@@ -1,5 +1,5 @@
 // go-session/examples/fwd
-// MIT License Copyright(c) 2019 Hiroshi Shimamoto
+// MIT License Copyright(c) 2019, 2020 Hiroshi Shimamoto
 // vim:set sw=4 sts=4:
 
 package main
@@ -8,6 +8,7 @@ import (
     "log"
     "net"
     "os"
+    "time"
 
     "github.com/hshimamoto/go-session"
     "github.com/hshimamoto/go-iorelay"
@@ -32,5 +33,7 @@ func main() {
 	log.Printf("session.NewServer: %v\n", err)
 	return
     }
-    s.Run()
+    go s.Run()
+    time.Sleep(time.Minute)
+    s.Stop()
 }

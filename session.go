@@ -14,6 +14,7 @@ import (
 
 type Server struct {
     listener net.Listener
+    running bool
     handler func(conn net.Conn)
 }
 
@@ -24,6 +25,7 @@ func NewServer(addr string, handler func(conn net.Conn)) (*Server, error) {
     }
     return &Server {
 	listener: l,
+	running: false,
 	handler: handler,
     }, nil
 }
@@ -115,8 +117,22 @@ func Corkscrew(proxy, addr string) (net.Conn, error) {
 }
 
 func (s *Server)Run() {
-    for {
-	conn, _ := s.listener.Accept()
+    if s.running {
+	return
+    }
+    s.running = true
+    for s.running {
+	conn, err := s.listener.Accept()
+	if err != nil {
+	    continue
+	}
 	go s.handler(conn)
+    }
+}
+
+func (s *Server)Stop() {
+    if s.running {
+	s.running = false
+	s.listener.Close()
     }
 }
