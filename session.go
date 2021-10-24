@@ -88,6 +88,9 @@ func HttpConnect(conn net.Conn, addr string) error {
 	if bytes.Index(buf, []byte{13, 10, 13, 10}) > 0 {
 	    break
 	}
+	if n >= 256 {
+	    return fmt.Errorf("header too long")
+	}
 	r, err := conn.Read(buf[n:n+1])
 	if err != nil {
 	    return err
@@ -96,9 +99,6 @@ func HttpConnect(conn net.Conn, addr string) error {
 	    return fmt.Errorf("connection closed")
 	}
 	n += r
-	if n >= 256 {
-	    return fmt.Errorf("header too long")
-	}
     }
     return err
 }
